@@ -1,5 +1,7 @@
 package com.example.android.popularmoviesapp;
 
+import android.util.Log;
+
 import com.example.android.popularmoviesapp.data.MovieDetail;
 
 import org.json.JSONArray;
@@ -26,11 +28,15 @@ public class MovieJsonResultParser {
             JSONObject jsonResult = new JSONObject(mJsonResult);
             posterPaths = new ArrayList<>();
             JSONArray results = jsonResult.getJSONArray("results");
-            for (int i = 0; i < results.length(); i++) {
-                String posterPath = results.getJSONObject(i).getString("poster_path");
-                posterPaths.add(posterPath);
+            if (results != null) {
+                for (int i = 0; i < results.length(); i++) {
+                    String posterPath = results.getJSONObject(i).getString("poster_path");
+                    posterPaths.add(posterPath);
+                }
             }
         } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (NullPointerException e){
             e.printStackTrace();
         }
 
@@ -43,6 +49,7 @@ public class MovieJsonResultParser {
             JSONObject jsonResult = new JSONObject(mJsonResult);
             movieDetails = new ArrayList<>();
             JSONArray results = jsonResult.getJSONArray("results");
+
             for (int i = 0; i < results.length(); i++) {
                 JSONObject currentObject = results.getJSONObject(i);
                 String title = currentObject.getString("original_title");
@@ -56,7 +63,10 @@ public class MovieJsonResultParser {
             }
         } catch (JSONException e) {
             e.printStackTrace();
+        } catch (NullPointerException e){
+            e.printStackTrace();
         }
+
         return movieDetails;
     }
 }

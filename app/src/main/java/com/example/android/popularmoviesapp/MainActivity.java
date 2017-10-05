@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
         // TODO: Check the internet connection
 
-        if(isOnline()) {
+        if (isOnline()) {
             showMoviePosters(NetworkUtils.QUERY_PARAM_DEFAULT);
         }
     }
@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemId = item.getItemId();
-        switch (itemId){
+        switch (itemId) {
             case R.id.mi_most_popular:
                 showMoviePosters(NetworkUtils.QUERY_PARAM_POPULAR);
                 return true;
@@ -86,16 +86,16 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         startActivity(intent);
     }
 
-    private class MoviePostersAsyncTask extends AsyncTask<URL, Void, String>{
+    private class MoviePostersAsyncTask extends AsyncTask<URL, Void, String> {
 
         @Override
         protected String doInBackground(URL... params) {
             URL url = params[0];
             Log.d(TAG, "doInBackground: url = " + url);
             String result = null;
-            try{
+            try {
                 result = NetworkUtils.getResponseFromHttpUrl(url);
-            } catch (IOException e){
+            } catch (IOException e) {
                 e.printStackTrace();
             }
             return result;
@@ -104,14 +104,14 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         @Override
         protected void onPostExecute(String s) {
             // clear previous posters and movie details
-            mPosterUris.clear();
-            mMovieDetails.clear();
+            if (mPosterUris != null) mPosterUris.clear();
+            if (mMovieDetails != null) mMovieDetails.clear();
 
             MovieJsonResultParser parser = new MovieJsonResultParser(s);
             mMovieDetails = parser.getMovieDetails();
 
             ArrayList<String> posterPaths = parser.getPosterPaths();
-            if(posterPaths != null) {
+            if (posterPaths != null) {
                 for (String posterPath : posterPaths) {
                     mPosterUris.add(NetworkUtils.buildPosterUri(posterPath));
                 }
@@ -121,7 +121,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         }
     }
 
-    private void showMoviePosters(String queryParam){
+    private void showMoviePosters(String queryParam) {
         new MoviePostersAsyncTask().execute(NetworkUtils.buildApiUrl(queryParam));
     }
 

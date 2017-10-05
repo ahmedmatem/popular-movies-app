@@ -25,7 +25,7 @@ public class NetworkUtils {
     public static final String QUERY_PARAM_DEFAULT = QUERY_PARAM_POPULAR;
     public static final String QUERY_PARAM_TOP_RATED = "top_rated";
 
-    private static final String API_KEY_VALUE = "Ap1KeYg0esHe1R";
+    private static final String API_KEY_VALUE = "Ap1KeyG0esHerE";
     private static final String API_KEY_PARAM = "api_key";
 
     private static final String BASE_URL = "http://image.tmdb.org/t/p/";

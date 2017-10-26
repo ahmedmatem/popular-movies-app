@@ -19,20 +19,23 @@ public class NetworkUtils {
      * https://api.themoviedb.org/3/movie/popular|top_rated/api_key=<api-key>
      */
 
+    private static final String BASE_URL = "http://image.tmdb.org/t/p/";
+
     private static final String API_BASE_URL = "https://api.themoviedb.org/3/movie/";
 
-    public static final String QUERY_PARAM_POPULAR = "popular";
-    public static final String QUERY_PARAM_DEFAULT = QUERY_PARAM_POPULAR;
-    public static final String QUERY_PARAM_TOP_RATED = "top_rated";
-
-    private static final String API_KEY_VALUE = "Ap1KeyG0esHerE";
+    private static final String API_KEY_VALUE = "34908b2a2093affdee976f3885ae1c0e";
     private static final String API_KEY_PARAM = "api_key";
 
-    private static final String BASE_URL = "http://image.tmdb.org/t/p/";
+    public static final String SORT_ORDER_POPULAR = "popular";
+    public static final String SORT_ORDER_TOP_RATED = "top_rated";
+    public static final String SORT_ORDER_DEFAULT = SORT_ORDER_POPULAR;
+
+    private static final String TRAILERS_PATH = "/videos";
+
     private static final String POSTER_DEFAULT_SIZE = "w185";
 
-    public static URL buildApiUrl(String queryParam) {
-        Uri builtUri = Uri.parse(API_BASE_URL + queryParam)
+    public static URL buildMovieUrl(String sortQueryParam) {
+        Uri builtUri = Uri.parse(API_BASE_URL + sortQueryParam)
                 .buildUpon()
                 .appendQueryParameter(API_KEY_PARAM, API_KEY_VALUE)
                 .build();
@@ -41,6 +44,22 @@ public class NetworkUtils {
         try {
             url = new URL(builtUri.toString());
         } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+
+        return url;
+    }
+
+    public static URL buildMovieTrailersUrl(String movieId){
+        Uri buildUri = Uri.parse(API_BASE_URL + movieId + TRAILERS_PATH)
+                .buildUpon()
+                .appendQueryParameter(API_KEY_PARAM, API_KEY_VALUE)
+                .build();
+
+        URL url = null;
+        try{
+           url = new URL(buildUri.toString());
+        } catch (MalformedURLException e){
             e.printStackTrace();
         }
 

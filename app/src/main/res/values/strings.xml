@@ -8,4 +8,10 @@
     <string name="movie_detail">Movie Detail</string>
     <string name="of_max_rating">/10</string>
     <string name="thumbnail">Thumbnail</string>
+
+    <string name="trailer_list_title">Trailers:</string>
+    <string name="trailer_name">Trailer %1$d</string>
+
+    <string name="youtube_initialize_failure">Failure to initialize.</string>
+    <string name="play_button_description">Press button to play trailer.</string>
 </resources>

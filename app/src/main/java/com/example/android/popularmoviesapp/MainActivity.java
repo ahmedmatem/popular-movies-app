@@ -16,6 +16,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 
 import com.example.android.popularmoviesapp.data.MovieDetail;
+import com.example.android.popularmoviesapp.data.PopularMoviesPreferences;
 import com.example.android.popularmoviesapp.utilities.NetworkUtils;
 
 import java.io.IOException;
@@ -31,6 +32,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
 
     private final ArrayList<Uri> mPosterUris = new ArrayList<>();
     private ArrayList<MovieDetail> mMovieDetails = new ArrayList<>();
+    String sortQueryParamValue;
 
     private MovieAdapter mAdapter;
 
@@ -47,11 +49,21 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         mAdapter = new MovieAdapter(mPosterUris, this);
         moviesRecyclerView.setAdapter(mAdapter);
 
-        // TODO: Check the internet connection
-
         if (isOnline()) {
-            showMoviePosters(NetworkUtils.QUERY_PARAM_DEFAULT);
+//            if(savedInstanceState != null){
+//
+//            } else {
+//
+//            }
+            sortQueryParamValue = PopularMoviesPreferences.getMovieSortOrder(this);
+            showMoviePosters(sortQueryParamValue);
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -66,10 +78,12 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         int itemId = item.getItemId();
         switch (itemId) {
             case R.id.mi_most_popular:
-                showMoviePosters(NetworkUtils.QUERY_PARAM_POPULAR);
+                sortQueryParamValue = NetworkUtils.SORT_ORDER_POPULAR;
+                showMoviePosters(sortQueryParamValue);
                 return true;
             case R.id.mi_top_rated:
-                showMoviePosters(NetworkUtils.QUERY_PARAM_TOP_RATED);
+                sortQueryParamValue = NetworkUtils.SORT_ORDER_TOP_RATED;
+                showMoviePosters(sortQueryParamValue);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -121,8 +135,11 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         }
     }
 
-    private void showMoviePosters(String queryParam) {
-        new MoviePostersAsyncTask().execute(NetworkUtils.buildApiUrl(queryParam));
+    private void showMoviePosters(String sortQueryParam) {
+        // save sort_order in preferences
+        PopularMoviesPreferences.setMovieSortOrder(this, sortQueryParam);
+
+        new MoviePostersAsyncTask().execute(NetworkUtils.buildMovieUrl(sortQueryParam));
     }
 
     private boolean isOnline() {

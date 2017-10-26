@@ -10,18 +10,25 @@ public class MovieDetail implements Serializable {
 
     static final long serialVersionUID = 1L;
 
+    private String mMovieId;
     private String mImageUrl;
     private String mTitle;
     private String mOverview;
     private String mRating;
     private String mReleaseDate;
+    private int mTrailersCount;
 
-    public MovieDetail(String imageUrl, String title, String overview, String rating, String releaseDate) {
+    public MovieDetail(String movieId, String imageUrl, String title, String overview, String rating, String releaseDate) {
+        mMovieId = movieId;
         mImageUrl = imageUrl;
         mTitle = title;
         mOverview = overview;
         mRating = rating;
         mReleaseDate = releaseDate;
+    }
+
+    public String getMovieId() {
+        return mMovieId;
     }
 
     public String getImageUrl() {
@@ -43,6 +50,8 @@ public class MovieDetail implements Serializable {
     public String getReleaseDate() {
         return mReleaseDate;
     }
+
+    public int getTrailersCount() { return mTrailersCount; }
 
     @Override
     public String toString() {

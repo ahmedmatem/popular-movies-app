@@ -52,13 +52,14 @@ public class MovieJsonResultParser {
 
             for (int i = 0; i < results.length(); i++) {
                 JSONObject currentObject = results.getJSONObject(i);
+                String movieId = currentObject.getString("id");
                 String title = currentObject.getString("original_title");
                 String overview = currentObject.getString("overview");
                 String releaseDate = currentObject.getString("release_date");
                 String rating = currentObject.getString("vote_average");
                 String imageUrl = currentObject.getString("poster_path");
 
-                MovieDetail movieDetail = new MovieDetail(imageUrl, title, overview, rating, releaseDate);
+                MovieDetail movieDetail = new MovieDetail(movieId, imageUrl, title, overview, rating, releaseDate);
                 movieDetails.add(movieDetail);
             }
         } catch (JSONException e) {

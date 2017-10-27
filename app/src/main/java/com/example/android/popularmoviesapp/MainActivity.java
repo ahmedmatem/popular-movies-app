@@ -2,10 +2,12 @@ package com.example.android.popularmoviesapp;
 
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.support.v4.app.LoaderManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -15,10 +17,13 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
-import com.example.android.popularmoviesapp.data.MovieDetail;
+import com.example.android.popularmoviesapp.data.MovieContract;
+import com.example.android.popularmoviesapp.models.MovieDetail;
 import com.example.android.popularmoviesapp.data.PopularMoviesPreferences;
 import com.example.android.popularmoviesapp.utilities.NetworkUtils;
+import com.example.android.popularmoviesapp.utilities.StorageUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -49,13 +54,12 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         mAdapter = new MovieAdapter(mPosterUris, this);
         moviesRecyclerView.setAdapter(mAdapter);
 
-        if (isOnline()) {
-//            if(savedInstanceState != null){
-//
-//            } else {
-//
-//            }
-            sortQueryParamValue = PopularMoviesPreferences.getMovieSortOrder(this);
+        sortQueryParamValue = PopularMoviesPreferences.getMovieSortOrder(this);
+        if (sortQueryParamValue.equals(NetworkUtils.SORT_ORDER_FAVORITE)) {
+            // load movie local
+            loadFavoriteMovies();
+        } else if (isOnline()) {
+
             showMoviePosters(sortQueryParamValue);
         }
     }
@@ -85,9 +89,17 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
                 sortQueryParamValue = NetworkUtils.SORT_ORDER_TOP_RATED;
                 showMoviePosters(sortQueryParamValue);
                 return true;
+            case R.id.mi_favorite:
+                sortQueryParamValue = NetworkUtils.SORT_ORDER_FAVORITE;
+                loadFavoriteMovies();
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void loadFavoriteMovies() {
+        PopularMoviesPreferences.setMovieSortOrder(this, NetworkUtils.SORT_ORDER_FAVORITE);
+        new FavoriteMoviesAsyncTask().execute(MovieContract.MovieEntry.CONTENT_URI);
     }
 
     @Override
@@ -98,6 +110,54 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         bundle.putSerializable(MOVIE_DETAIL, mMovieDetails.get(itemIndex));
         intent.putExtras(bundle);
         startActivity(intent);
+    }
+
+    private class FavoriteMoviesAsyncTask extends AsyncTask<Uri, Void, Cursor> {
+
+        @Override
+        protected Cursor doInBackground(Uri... params) {
+            Uri uri = params[0];
+//            Log.d(TAG, "doInBackground: uri:" + uri);
+            Cursor cursor = null;
+            try {
+                cursor = getContentResolver().query(uri,
+                        null,
+                        null,
+                        null,
+                        null);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return cursor;
+        }
+
+        @Override
+        protected void onPostExecute(Cursor cursor) {
+            if (cursor == null)
+                return;
+
+            if (mPosterUris != null) mPosterUris.clear();
+            if (mMovieDetails != null) mMovieDetails.clear();
+
+            String posterUrl, id, title, overview, rating, releaseDate;
+            while (cursor.moveToNext()) {
+                posterUrl = cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_IMAGE_URL));
+                id = cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_MOVIE_ID));
+                title = cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_TITLE));
+                overview = cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_OVERVIEW));
+                rating = cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_RATING));
+                releaseDate = cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_RELEASE_DATE));
+
+                Uri uri = StorageUtils.buildImageUri(posterUrl);
+                mPosterUris.add(uri);
+
+                mMovieDetails.add(new MovieDetail(id, uri.toString(), title, overview, rating, releaseDate));
+
+            }
+
+            mAdapter.notifyDataSetChanged();
+        }
     }
 
     private class MoviePostersAsyncTask extends AsyncTask<URL, Void, String> {

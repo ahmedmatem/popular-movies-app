@@ -1,6 +1,6 @@
 package com.example.android.popularmoviesapp;
 
-import com.example.android.popularmoviesapp.data.Trailer;
+import com.example.android.popularmoviesapp.models.Trailer;
 
 import org.json.JSONArray;
 import org.json.JSONException;

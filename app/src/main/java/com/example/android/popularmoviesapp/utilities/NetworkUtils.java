@@ -28,6 +28,7 @@ public class NetworkUtils {
 
     public static final String SORT_ORDER_POPULAR = "popular";
     public static final String SORT_ORDER_TOP_RATED = "top_rated";
+    public static final String SORT_ORDER_FAVORITE = "favorite";
     public static final String SORT_ORDER_DEFAULT = SORT_ORDER_POPULAR;
 
     private static final String TRAILERS_PATH = "/videos";

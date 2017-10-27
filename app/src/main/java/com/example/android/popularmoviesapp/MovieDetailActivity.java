@@ -1,6 +1,10 @@
 package com.example.android.popularmoviesapp;
 
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -9,16 +13,19 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.example.android.popularmoviesapp.data.MovieDetail;
-import com.example.android.popularmoviesapp.data.Trailer;
+import com.example.android.popularmoviesapp.data.MovieContract;
+import com.example.android.popularmoviesapp.models.MovieDetail;
+import com.example.android.popularmoviesapp.models.Trailer;
 import com.example.android.popularmoviesapp.utilities.NetworkUtils;
+import com.example.android.popularmoviesapp.utilities.StorageUtils;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 
-public class MovieDetailActivity extends AppCompatActivity implements TrailerAdapter.OnTrailerClickedHandler {
+public class MovieDetailActivity extends AppCompatActivity implements TrailerAdapter.onMovieDetailClickHandler {
 
     private static final String TAG = "MovieDetailActivity";
 
@@ -27,12 +34,6 @@ public class MovieDetailActivity extends AppCompatActivity implements TrailerAda
     // TODO: override onSavedInstantState
 
     private MovieDetail mMovieDetail;
-
-    private ImageView mImageThumbnail;
-    private TextView mTile;
-    private TextView mOverview;
-    private TextView mRating;
-    private TextView mReleaseDate;
 
     private TrailerAdapter mAdapter;
 
@@ -71,7 +72,28 @@ public class MovieDetailActivity extends AppCompatActivity implements TrailerAda
         startActivity(youtubeIntent);
     }
 
-    private class TrailerAsyncTask extends AsyncTask<URL, Void, String>{
+    @Override
+    public void onFavoriteButtonClicked(Bitmap bitmap) {
+        // insert image to internal memory
+        String imageUrl =
+                StorageUtils.saveToInternalStorage(getApplicationContext(), bitmap, mMovieDetail.getImageUrl());
+
+        if (imageUrl != null) {
+            Log.d(TAG, "inserting movie detail");
+            ContentValues cv = new ContentValues();
+            cv.put(MovieContract.MovieEntry.COLUMN_IMAGE_URL, imageUrl + mMovieDetail.getImageUrl());
+            cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_ID, mMovieDetail.getMovieId());
+            cv.put(MovieContract.MovieEntry.COLUMN_TITLE, mMovieDetail.getTitle());
+            cv.put(MovieContract.MovieEntry.COLUMN_OVERVIEW, mMovieDetail.getOverview());
+            cv.put(MovieContract.MovieEntry.COLUMN_RATING, mMovieDetail.getRating());
+            cv.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, mMovieDetail.getReleaseDate());
+
+            // Insert movie detail into database via a ContentResolver
+            Uri uri = getContentResolver().insert(MovieContract.MovieEntry.CONTENT_URI, cv);
+        }
+    }
+
+    private class TrailerAsyncTask extends AsyncTask<URL, Void, String> {
 
         @Override
         protected String doInBackground(URL... params) {
@@ -90,8 +112,8 @@ public class MovieDetailActivity extends AppCompatActivity implements TrailerAda
         protected void onPostExecute(String result) {
             Log.d(TAG, "onPostExecute: result = " + result);
             ArrayList<Trailer> trailers = TrailerJsonResultParser.parse(result);
-            for(Trailer trailer : trailers){
-                Log.d("MovieDetailActivity", "trailer: " + trailer + "\n\n\n\n");
+            for (Trailer trailer : trailers) {
+//                Log.d("MovieDetailActivity", "trailer: " + trailer + "\n\n\n\n");
                 mTrailers.add(trailer);
             }
             mAdapter.notifyDataSetChanged();

@@ -1,4 +1,4 @@
-package com.example.android.popularmoviesapp.data;
+package com.example.android.popularmoviesapp.models;
 
 import java.io.Serializable;
 
@@ -16,7 +16,6 @@ public class MovieDetail implements Serializable {
     private String mOverview;
     private String mRating;
     private String mReleaseDate;
-    private int mTrailersCount;
 
     public MovieDetail(String movieId, String imageUrl, String title, String overview, String rating, String releaseDate) {
         mMovieId = movieId;
@@ -50,8 +49,6 @@ public class MovieDetail implements Serializable {
     public String getReleaseDate() {
         return mReleaseDate;
     }
-
-    public int getTrailersCount() { return mTrailersCount; }
 
     @Override
     public String toString() {

@@ -1,6 +1,7 @@
 package com.example.android.popularmoviesapp;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -18,6 +19,7 @@ import java.util.ArrayList;
 
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> {
 
+    private Cursor mCursor;
     private final ArrayList<Uri> mPosterUris;
 
     private final MovieOnClickHandler mMovieOnClickHandler;

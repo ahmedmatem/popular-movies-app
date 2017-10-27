@@ -1,17 +1,22 @@
 package com.example.android.popularmoviesapp;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.example.android.popularmoviesapp.data.MovieDetail;
-import com.example.android.popularmoviesapp.data.Trailer;
+import com.example.android.popularmoviesapp.data.PopularMoviesPreferences;
+import com.example.android.popularmoviesapp.models.MovieDetail;
+import com.example.android.popularmoviesapp.models.Trailer;
 import com.example.android.popularmoviesapp.utilities.NetworkUtils;
+import com.example.android.popularmoviesapp.utilities.StorageUtils;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -22,10 +27,12 @@ import java.util.ArrayList;
 
 public class TrailerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    private OnTrailerClickedHandler mCallbacl;
+    private onMovieDetailClickHandler mCallback;
 
-    public interface OnTrailerClickedHandler {
+    public interface onMovieDetailClickHandler {
         void onPlayButtonClicked(String key);
+
+        void onFavoriteButtonClicked(Bitmap image);
     }
 
     private static final int VIEW_TYPE_HEADER = 0;
@@ -34,8 +41,8 @@ public class TrailerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     private ArrayList<Trailer> mTrailers = null;
     private MovieDetail mMovieDetail;
 
-    public TrailerAdapter(OnTrailerClickedHandler callback, ArrayList<Trailer> trailers, MovieDetail movieDetail) {
-        mCallbacl = callback;
+    public TrailerAdapter(onMovieDetailClickHandler callback, ArrayList<Trailer> trailers, MovieDetail movieDetail) {
+        mCallback = callback;
         mTrailers = trailers;
         mMovieDetail = movieDetail;
     }
@@ -45,21 +52,9 @@ public class TrailerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         Context context = parent.getContext();
         LayoutInflater layoutInflater = LayoutInflater.from(context);
 
-        if(viewType == VIEW_TYPE_HEADER){
+        if (viewType == VIEW_TYPE_HEADER) {
             //Create viewHolder for header view
             View view = layoutInflater.inflate(R.layout.trailer_list_item_header, parent, false);
-
-            ImageView mImageThumbnail = (ImageView) view.findViewById(R.id.iv_thumbnail);
-            TextView mOverview = (TextView) view.findViewById(R.id.tv_overview);
-            TextView mRating = (TextView) view.findViewById(R.id.tv_rating);
-            TextView mReleaseDate = (TextView) view.findViewById(R.id.tv_release_date);
-
-            Picasso.with(context).load(NetworkUtils.buildPosterUri(mMovieDetail.getImageUrl()))
-                    .into(mImageThumbnail);
-            mOverview.setText(mMovieDetail.getOverview());
-            mRating.setText(String.format("%s%s", mMovieDetail.getRating(), context.getString(R.string.of_max_rating)));
-            mReleaseDate.setText(mMovieDetail.getReleaseDate());
-
             return new HeaderViewHolder(view);
         } else {
             //Create viewHolder for your default cell
@@ -70,7 +65,7 @@ public class TrailerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        if(holder instanceof CellViewHolder){
+        if (holder instanceof CellViewHolder) {
             CellViewHolder cellViewHolder = (CellViewHolder) holder;
             Context context = cellViewHolder.mPlayImageView.getContext();
 
@@ -85,7 +80,7 @@ public class TrailerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     @Override
     public int getItemCount() {
-        if(mTrailers != null){
+        if (mTrailers != null) {
             // return size of trailers + one more item for header
             return mTrailers.size() + 1;
         }
@@ -115,7 +110,7 @@ public class TrailerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
         @Override
         public void onClick(View v) {
-            mCallbacl.onPlayButtonClicked(v.getTag().toString());
+            mCallback.onPlayButtonClicked(v.getTag().toString());
         }
     }
 
@@ -125,7 +120,7 @@ public class TrailerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         final TextView mOverview;
         final TextView mRating;
         final TextView mReleaseDate;
-
+        final Button mFavoriteButton;
 
 
         public HeaderViewHolder(View itemView) {
@@ -137,16 +132,28 @@ public class TrailerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             mReleaseDate = (TextView) itemView.findViewById(R.id.tv_release_date);
 
             Context context = itemView.getContext();
-            Picasso.with(context).load(NetworkUtils.buildPosterUri(mMovieDetail.getImageUrl()))
-                    .into(mImageThumbnail);
+            String sortOrder = PopularMoviesPreferences.getMovieSortOrder(context);
+            if (sortOrder.equals(NetworkUtils.SORT_ORDER_FAVORITE)) {
+                // load images locally
+                Picasso.with(context).load(mMovieDetail.getImageUrl())
+                        .into(mImageThumbnail);
+            } else {
+                Picasso.with(context).load(NetworkUtils.buildPosterUri(mMovieDetail.getImageUrl()))
+                        .into(mImageThumbnail);
+            }
             mOverview.setText(mMovieDetail.getOverview());
             mRating.setText(String.format("%s%s", mMovieDetail.getRating(), context.getString(R.string.of_max_rating)));
-            mReleaseDate.setText(mMovieDetail.getReleaseDate());
+            mReleaseDate.setText(mMovieDetail.getReleaseDate().split("-")[0]);
+
+            mFavoriteButton = (Button) itemView.findViewById(R.id.btn_favorite);
+            mFavoriteButton.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View v) {
-            Log.d("TrailerAdapter", "onClick: Play image was clicked");
+            BitmapDrawable draw = (BitmapDrawable) mImageThumbnail.getDrawable();
+            Bitmap bitmap = draw.getBitmap();
+            mCallback.onFavoriteButtonClicked(bitmap);
         }
     }
 }

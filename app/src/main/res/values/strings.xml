@@ -5,6 +5,10 @@
     <string name="menu_item_top_rated">Top Rated</string>
     <string name="menu_item_favorite">Favorite</string>
 
+    <string name="title_popular_movies">Popular Movies</string>
+    <string name="title_top_rated_movies">Top Rated Movies</string>
+    <string name="title_favorite_movies">Favorite Movies</string>
+
     <string name="movies">Movies</string>
     <string name="movie_detail">Movie Detail</string>
     <string name="of_max_rating">/10</string>
@@ -15,6 +19,7 @@
 
     <string name="youtube_initialize_failure">Failure to initialize.</string>
     <string name="play_button_description">Press button to play trailer.</string>
-    <string name="button_favorite_text">Mark as favorite</string>
+    <string name="mark_text">Mark as\nfavorite</string>
+    <string name="unmark_text">Unmark as\nfavorite</string>
 
 </resources>

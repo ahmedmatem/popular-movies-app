@@ -3,7 +3,6 @@ package com.example.android.popularmoviesapp;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,12 +10,12 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.android.popularmoviesapp.data.PopularMoviesPreferences;
 import com.example.android.popularmoviesapp.models.MovieDetail;
 import com.example.android.popularmoviesapp.models.Trailer;
 import com.example.android.popularmoviesapp.utilities.NetworkUtils;
-import com.example.android.popularmoviesapp.utilities.StorageUtils;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -31,8 +30,8 @@ public class TrailerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     public interface onMovieDetailClickHandler {
         void onPlayButtonClicked(String key);
-
         void onFavoriteButtonClicked(Bitmap image);
+        void onUnfavoriteButtonClicked(long id);
     }
 
     private static final int VIEW_TYPE_HEADER = 0;
@@ -120,6 +119,7 @@ public class TrailerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         final TextView mOverview;
         final TextView mRating;
         final TextView mReleaseDate;
+        final Button mUnfavoriteButton;
         final Button mFavoriteButton;
 
 
@@ -133,27 +133,41 @@ public class TrailerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
             Context context = itemView.getContext();
             String sortOrder = PopularMoviesPreferences.getMovieSortOrder(context);
+
+            mUnfavoriteButton = (Button) itemView.findViewById(R.id.btn_unfavorite);
+            mFavoriteButton = (Button) itemView.findViewById(R.id.btn_favorite);
+
             if (sortOrder.equals(NetworkUtils.SORT_ORDER_FAVORITE)) {
                 // load images locally
                 Picasso.with(context).load(mMovieDetail.getImageUrl())
                         .into(mImageThumbnail);
+                mUnfavoriteButton.setVisibility(View.VISIBLE);
+                mUnfavoriteButton.setTag(mMovieDetail.getId());
+                mUnfavoriteButton.setOnClickListener(this);
+                mFavoriteButton.setVisibility(View.GONE);
             } else {
+                // the favorite button is  necessary
+                mFavoriteButton.setOnClickListener(this);
                 Picasso.with(context).load(NetworkUtils.buildPosterUri(mMovieDetail.getImageUrl()))
                         .into(mImageThumbnail);
             }
             mOverview.setText(mMovieDetail.getOverview());
             mRating.setText(String.format("%s%s", mMovieDetail.getRating(), context.getString(R.string.of_max_rating)));
             mReleaseDate.setText(mMovieDetail.getReleaseDate().split("-")[0]);
-
-            mFavoriteButton = (Button) itemView.findViewById(R.id.btn_favorite);
-            mFavoriteButton.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View v) {
-            BitmapDrawable draw = (BitmapDrawable) mImageThumbnail.getDrawable();
-            Bitmap bitmap = draw.getBitmap();
-            mCallback.onFavoriteButtonClicked(bitmap);
+            switch (v.getId()){
+                case R.id.btn_favorite:
+                    BitmapDrawable draw = (BitmapDrawable) mImageThumbnail.getDrawable();
+                    Bitmap bitmap = draw.getBitmap();
+                    mCallback.onFavoriteButtonClicked(bitmap);
+                    break;
+                case R.id.btn_unfavorite:
+                    mCallback.onUnfavoriteButtonClicked((long)v.getTag());
+                    break;
+            }
         }
     }
 }

@@ -7,7 +7,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.support.v4.app.LoaderManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -23,7 +22,6 @@ import com.example.android.popularmoviesapp.data.PopularMoviesPreferences;
 import com.example.android.popularmoviesapp.utilities.NetworkUtils;
 import com.example.android.popularmoviesapp.utilities.StorageUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -55,13 +53,56 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         moviesRecyclerView.setAdapter(mAdapter);
 
         sortQueryParamValue = PopularMoviesPreferences.getMovieSortOrder(this);
+        setActivityTitle(sortQueryParamValue);
+        boolean isOnline = NetworkUtils.isOnline(this);
         if (sortQueryParamValue.equals(NetworkUtils.SORT_ORDER_FAVORITE)) {
             // load movie local
             loadFavoriteMovies();
-        } else if (isOnline()) {
-
-            showMoviePosters(sortQueryParamValue);
+        } else {
+            if (isOnline) {
+                showMoviePosters(sortQueryParamValue);
+            } else {
+                loadFavoriteMovies();
+            }
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        sortQueryParamValue = PopularMoviesPreferences.getMovieSortOrder(this);
+        setActivityTitle(sortQueryParamValue);
+        boolean isOnline = NetworkUtils.isOnline(this);
+        if (sortQueryParamValue.equals(NetworkUtils.SORT_ORDER_FAVORITE)) {
+            // load movie local
+            loadFavoriteMovies();
+        } else {
+            if (isOnline) {
+                showMoviePosters(sortQueryParamValue);
+            } else {
+                loadFavoriteMovies();
+            }
+        }
+    }
+
+    private void setActivityTitle(String sortQueryParamValue) {
+        String title;
+        switch (sortQueryParamValue){
+            case NetworkUtils.SORT_ORDER_POPULAR:
+                title = getString(R.string.title_popular_movies);
+                break;
+            case NetworkUtils.SORT_ORDER_TOP_RATED:
+                title = getString(R.string.title_top_rated_movies);
+                break;
+            case NetworkUtils.SORT_ORDER_FAVORITE:
+                title = getString(R.string.title_favorite_movies);
+                break;
+            default:
+                title = getString(R.string.title_popular_movies);
+        }
+
+        setTitle(title);
     }
 
     @Override
@@ -95,11 +136,6 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
             default:
                 return super.onOptionsItemSelected(item);
         }
-    }
-
-    private void loadFavoriteMovies() {
-        PopularMoviesPreferences.setMovieSortOrder(this, NetworkUtils.SORT_ORDER_FAVORITE);
-        new FavoriteMoviesAsyncTask().execute(MovieContract.MovieEntry.CONTENT_URI);
     }
 
     @Override
@@ -138,12 +174,18 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
                 return;
 
             if (mPosterUris != null) mPosterUris.clear();
-            if (mMovieDetails != null) mMovieDetails.clear();
+            if (mMovieDetails != null) {
+                mMovieDetails.clear();
+            } else {
+                mMovieDetails = new ArrayList<>();
+            }
 
-            String posterUrl, id, title, overview, rating, releaseDate;
+            long id;
+            String posterUrl, movieId, title, overview, rating, releaseDate;
             while (cursor.moveToNext()) {
+                id = cursor.getLong(cursor.getColumnIndex(MovieContract.MovieEntry._ID));
                 posterUrl = cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_IMAGE_URL));
-                id = cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_MOVIE_ID));
+                movieId = cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_MOVIE_ID));
                 title = cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_TITLE));
                 overview = cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_OVERVIEW));
                 rating = cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_RATING));
@@ -152,8 +194,8 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
                 Uri uri = StorageUtils.buildImageUri(posterUrl);
                 mPosterUris.add(uri);
 
-                mMovieDetails.add(new MovieDetail(id, uri.toString(), title, overview, rating, releaseDate));
-
+                MovieDetail movieDetail = new MovieDetail(id, movieId, uri.toString(), title, overview, rating, releaseDate);
+                mMovieDetails.add(movieDetail);
             }
 
             mAdapter.notifyDataSetChanged();
@@ -198,14 +240,14 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
     private void showMoviePosters(String sortQueryParam) {
         // save sort_order in preferences
         PopularMoviesPreferences.setMovieSortOrder(this, sortQueryParam);
+        setActivityTitle(sortQueryParam);
 
         new MoviePostersAsyncTask().execute(NetworkUtils.buildMovieUrl(sortQueryParam));
     }
 
-    private boolean isOnline() {
-        ConnectivityManager cm =
-                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo netInfo = cm.getActiveNetworkInfo();
-        return netInfo != null && netInfo.isConnectedOrConnecting();
+    private void loadFavoriteMovies() {
+        PopularMoviesPreferences.setMovieSortOrder(this, NetworkUtils.SORT_ORDER_FAVORITE);
+        setActivityTitle(NetworkUtils.SORT_ORDER_FAVORITE);
+        new FavoriteMoviesAsyncTask().execute(MovieContract.MovieEntry.CONTENT_URI);
     }
 }

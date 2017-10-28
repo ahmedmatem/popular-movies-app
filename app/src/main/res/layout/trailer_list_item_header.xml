@@ -45,15 +45,30 @@
 
             <Button
                 android:id="@+id/btn_favorite"
-                android:layout_width="120dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@drawable/button_selector"
-                android:drawableLeft="@android:drawable/star_big_on"
-                android:padding="8dp"
-                android:text="@string/button_favorite_text"
+                android:drawableLeft="@mipmap/ic_favorite_star"
+                android:text="@string/mark_text"
                 android:textColor="@android:color/white"
+                android:paddingRight="8dp"
+                android:paddingEnd="8dp"
                 android:textSize="12sp"
                 android:layout_gravity="bottom"/>
+
+            <Button
+                android:id="@+id/btn_unfavorite"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableLeft="@mipmap/ic_favorite_star"
+                android:text="@string/unmark_text"
+                android:textColor="@android:color/white"
+                android:paddingRight="8dp"
+                android:paddingEnd="8dp"
+                android:textSize="12sp"
+                android:background="@drawable/button_selector"
+                android:visibility="gone"/>
+
         </LinearLayout>
 
     </LinearLayout>

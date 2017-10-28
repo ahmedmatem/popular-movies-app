@@ -1,5 +1,8 @@
 package com.example.android.popularmoviesapp.utilities;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 
 import java.io.IOException;
@@ -32,6 +35,7 @@ public class NetworkUtils {
     public static final String SORT_ORDER_DEFAULT = SORT_ORDER_POPULAR;
 
     private static final String TRAILERS_PATH = "/videos";
+    public static final String REVIEWS_PATH = "/reviews";
 
     private static final String POSTER_DEFAULT_SIZE = "w185";
 
@@ -67,6 +71,22 @@ public class NetworkUtils {
         return url;
     }
 
+    public static URL buildMovieReviewsUrl(String movieId){
+        Uri buildUri = Uri.parse(API_BASE_URL + movieId + REVIEWS_PATH)
+                .buildUpon()
+                .appendQueryParameter(API_KEY_PARAM, API_KEY_VALUE)
+                .build();
+
+        URL url = null;
+        try{
+            url = new URL(buildUri.toString());
+        } catch (MalformedURLException e){
+            e.printStackTrace();
+        }
+
+        return url;
+    }
+
     public static Uri buildPosterUri(String posterPath){
         return Uri.parse(BASE_URL + POSTER_DEFAULT_SIZE + posterPath);
     }
@@ -88,5 +108,12 @@ public class NetworkUtils {
         } finally {
             connection.disconnect();
         }
+    }
+
+    public static boolean isOnline(Context context) {
+        ConnectivityManager cm =
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 }

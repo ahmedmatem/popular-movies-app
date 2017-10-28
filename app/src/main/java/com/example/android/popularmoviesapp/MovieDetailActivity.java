@@ -1,6 +1,7 @@
 package com.example.android.popularmoviesapp;
 
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -61,7 +62,9 @@ public class MovieDetailActivity extends AppCompatActivity implements TrailerAda
         // load movie trailers
         String movieId = mMovieDetail.getMovieId();
         Log.d(TAG, "onCreate: movie id = " + movieId);
-        new TrailerAsyncTask().execute(NetworkUtils.buildMovieTrailersUrl(movieId));
+        if(NetworkUtils.isOnline(this)) {
+            new TrailerAsyncTask().execute(NetworkUtils.buildMovieTrailersUrl(movieId));
+        }
     }
 
     @Override
@@ -90,6 +93,17 @@ public class MovieDetailActivity extends AppCompatActivity implements TrailerAda
 
             // Insert movie detail into database via a ContentResolver
             Uri uri = getContentResolver().insert(MovieContract.MovieEntry.CONTENT_URI, cv);
+        }
+    }
+
+    @Override
+    public void onUnfavoriteButtonClicked(long id) {
+        // TODO: delete row from database by movieId using MovieContentProvider
+        Uri uri = ContentUris.withAppendedId(MovieContract.MovieEntry.CONTENT_URI, id);
+        int deletedRows = getContentResolver().delete(uri, null, null);
+
+        if(deletedRows > 0){
+            finish();
         }
     }
 

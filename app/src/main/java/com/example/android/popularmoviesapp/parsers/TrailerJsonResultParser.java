@@ -1,4 +1,4 @@
-package com.example.android.popularmoviesapp;
+package com.example.android.popularmoviesapp.parsers;
 
 import com.example.android.popularmoviesapp.models.Trailer;
 

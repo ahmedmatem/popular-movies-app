@@ -1,10 +1,7 @@
 package com.example.android.popularmoviesapp;
 
-import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
@@ -19,6 +16,7 @@ import android.view.MenuItem;
 import com.example.android.popularmoviesapp.data.MovieContract;
 import com.example.android.popularmoviesapp.models.MovieDetail;
 import com.example.android.popularmoviesapp.data.PopularMoviesPreferences;
+import com.example.android.popularmoviesapp.parsers.MovieJsonResultParser;
 import com.example.android.popularmoviesapp.utilities.NetworkUtils;
 import com.example.android.popularmoviesapp.utilities.StorageUtils;
 

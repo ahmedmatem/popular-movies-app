@@ -19,7 +19,6 @@ import java.util.ArrayList;
 
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> {
 
-    private Cursor mCursor;
     private final ArrayList<Uri> mPosterUris;
 
     private final MovieOnClickHandler mMovieOnClickHandler;

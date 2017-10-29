@@ -4,16 +4,17 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.android.popularmoviesapp.data.PopularMoviesPreferences;
 import com.example.android.popularmoviesapp.models.MovieDetail;
+import com.example.android.popularmoviesapp.models.Review;
 import com.example.android.popularmoviesapp.models.Trailer;
 import com.example.android.popularmoviesapp.utilities.NetworkUtils;
 import com.squareup.picasso.Picasso;
@@ -26,23 +27,32 @@ import java.util.ArrayList;
 
 public class TrailerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
+    private static final String TAG = "TrailerAdapter";
+
     private onMovieDetailClickHandler mCallback;
 
     public interface onMovieDetailClickHandler {
         void onPlayButtonClicked(String key);
+
         void onFavoriteButtonClicked(Bitmap image);
+
         void onUnfavoriteButtonClicked(long id);
     }
 
-    private static final int VIEW_TYPE_HEADER = 0;
-    private static final int VIEW_TYPE_CELL = 100;
+    private static final int VIEW_TYPE_HEADER = 100;
+    private static final int VIEW_TYPE_TRAILER_CELL = 101;
+    private static final int VIEW_TYPE_REVIEW_HEADER = 200;
+    private static final int VIEW_TYPE_REVIEW_CELL = 201;
 
     private ArrayList<Trailer> mTrailers = null;
+    private ArrayList<Review> mReviews = null;
     private MovieDetail mMovieDetail;
 
-    public TrailerAdapter(onMovieDetailClickHandler callback, ArrayList<Trailer> trailers, MovieDetail movieDetail) {
+    public TrailerAdapter(onMovieDetailClickHandler callback, ArrayList<Trailer> trailers,
+                          ArrayList<Review> reviews, MovieDetail movieDetail) {
         mCallback = callback;
         mTrailers = trailers;
+        mReviews = reviews;
         mMovieDetail = movieDetail;
     }
 
@@ -52,65 +62,85 @@ public class TrailerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         LayoutInflater layoutInflater = LayoutInflater.from(context);
 
         if (viewType == VIEW_TYPE_HEADER) {
-            //Create viewHolder for header view
             View view = layoutInflater.inflate(R.layout.trailer_list_item_header, parent, false);
             return new HeaderViewHolder(view);
-        } else {
-            //Create viewHolder for your default cell
+        } else if (viewType == VIEW_TYPE_TRAILER_CELL) {
             View view = layoutInflater.inflate(R.layout.trailer_list_item, parent, false);
-            return new CellViewHolder(view);
+            return new TrailerCellViewHolder(view);
+        } else if (viewType == VIEW_TYPE_REVIEW_HEADER) {
+            View view = layoutInflater.inflate(R.layout.review_list_item_header, parent, false);
+            return new ReviewHeaderViewHolder(view);
+        } else {
+            View view = layoutInflater.inflate(R.layout.review_list_item, parent, false);
+            return new ReviewCellViewHolder(view);
         }
     }
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        if (holder instanceof CellViewHolder) {
-            CellViewHolder cellViewHolder = (CellViewHolder) holder;
-            Context context = cellViewHolder.mPlayImageView.getContext();
+        Log.d(TAG, "onBindViewHolder: position is " + position);
+        Log.d(TAG, "onBindViewHolder: view type is " + getItemViewType(position));
+        if (holder instanceof TrailerCellViewHolder) {
+            TrailerCellViewHolder trailerCellViewHolder = (TrailerCellViewHolder) holder;
+            Context context = trailerCellViewHolder.mPlayImageView.getContext();
 
             Trailer trailer = mTrailers.get(position - 1);
 
-            cellViewHolder.mName.setText(context.getString(R.string.trailer_name, position));
+            trailerCellViewHolder.mName.setText(context.getString(R.string.trailer_name, position));
 
-            cellViewHolder.itemView.setTag(trailer.getKey());
+            trailerCellViewHolder.itemView.setTag(trailer.getKey());
         }
-
+        if (holder instanceof ReviewCellViewHolder) {
+            ReviewCellViewHolder reviewCellViewHolder = (ReviewCellViewHolder) holder;
+            if (mReviews != null) {
+                int numberOfTrailers = 0;
+                if (mTrailers != null) {
+                    numberOfTrailers += mTrailers.size();
+                }
+                Review review = mReviews.get(position - numberOfTrailers - 2);
+                reviewCellViewHolder.reviewUrl.setText(review.getURL());
+            }
+        }
     }
 
     @Override
     public int getItemCount() {
+        int itemCount = 1;  //one item for header
         if (mTrailers != null) {
-            // return size of trailers + one more item for header
-            return mTrailers.size() + 1;
+            itemCount += mTrailers.size();
         }
-        // return one item only for header
-        return 1;
+        if (mReviews != null && mReviews.size() > 0) {
+            itemCount += mReviews.size() + 1;   // + 1 for header
+        }
+
+        return itemCount;
     }
 
     @Override
     public int getItemViewType(int position) {
-        return position == 0 ? VIEW_TYPE_HEADER : VIEW_TYPE_CELL;
-    }
-
-    class CellViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-
-        final ImageView mPlayImageView;
-        final TextView mName;
-
-        public CellViewHolder(View itemView) {
-            super(itemView);
-
-            mPlayImageView = (ImageView) itemView.findViewById(R.id.iv_play);
-//            mPlayImageView.setOnClickListener(this);
-            itemView.setOnClickListener(this);
-
-            mName = (TextView) itemView.findViewById(R.id.tv_name);
+        if (position == 0) return VIEW_TYPE_HEADER;
+        if(mTrailers.size() > 0){
+            // there are trailers
+            if(0 < position && position <= mTrailers.size())
+                return VIEW_TYPE_TRAILER_CELL;
+            if (mTrailers.size() < position){
+                // there are reviews
+                if(position == mTrailers.size() + 1)
+                    return VIEW_TYPE_REVIEW_HEADER;
+                if(position > mTrailers.size() + 1)
+                    return VIEW_TYPE_REVIEW_CELL;
+            }
+        } else {
+            // there are not trailers
+            if(mReviews.size() > 0){
+                // there are reviews
+                if(position == 1)
+                    return VIEW_TYPE_REVIEW_HEADER;
+                if(position > 1)
+                    return VIEW_TYPE_REVIEW_CELL;
+            }
         }
-
-        @Override
-        public void onClick(View v) {
-            mCallback.onPlayButtonClicked(v.getTag().toString());
-        }
+        return VIEW_TYPE_REVIEW_HEADER;
     }
 
     class HeaderViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -158,16 +188,52 @@ public class TrailerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
         @Override
         public void onClick(View v) {
-            switch (v.getId()){
+            switch (v.getId()) {
                 case R.id.btn_favorite:
                     BitmapDrawable draw = (BitmapDrawable) mImageThumbnail.getDrawable();
                     Bitmap bitmap = draw.getBitmap();
                     mCallback.onFavoriteButtonClicked(bitmap);
                     break;
                 case R.id.btn_unfavorite:
-                    mCallback.onUnfavoriteButtonClicked((long)v.getTag());
+                    mCallback.onUnfavoriteButtonClicked((long) v.getTag());
                     break;
             }
+        }
+    }
+
+    class TrailerCellViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+
+        final ImageView mPlayImageView;
+        final TextView mName;
+
+        public TrailerCellViewHolder(View itemView) {
+            super(itemView);
+
+            mPlayImageView = (ImageView) itemView.findViewById(R.id.iv_play);
+//            mPlayImageView.setOnClickListener(this);
+            itemView.setOnClickListener(this);
+
+            mName = (TextView) itemView.findViewById(R.id.tv_name);
+        }
+
+        @Override
+        public void onClick(View v) {
+            mCallback.onPlayButtonClicked(v.getTag().toString());
+        }
+    }
+
+    class ReviewHeaderViewHolder extends RecyclerView.ViewHolder {
+        public ReviewHeaderViewHolder(View itemView) {
+            super(itemView);
+        }
+    }
+
+    class ReviewCellViewHolder extends RecyclerView.ViewHolder {
+        final TextView reviewUrl;
+
+        public ReviewCellViewHolder(View itemView) {
+            super(itemView);
+            reviewUrl = (TextView) itemView.findViewById(R.id.tv_review_url);
         }
     }
 }

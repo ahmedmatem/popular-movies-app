@@ -16,6 +16,7 @@
 
     <string name="trailer_list_title">Trailers</string>
     <string name="trailer_name">Trailer %1$d</string>
+    <string name="review_list_title">Reviews</string>
 
     <string name="youtube_initialize_failure">Failure to initialize.</string>
     <string name="play_button_description">Press button to play trailer.</string>

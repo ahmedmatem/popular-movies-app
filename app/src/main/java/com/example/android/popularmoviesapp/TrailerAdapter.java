@@ -98,7 +98,7 @@ public class TrailerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                     numberOfTrailers += mTrailers.size();
                 }
                 Review review = mReviews.get(position - numberOfTrailers - 2);
-                reviewCellViewHolder.reviewUrl.setText(review.getURL());
+                reviewCellViewHolder.author.setText(review.getAuthor());
             }
         }
     }
@@ -228,12 +228,18 @@ public class TrailerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
     }
 
-    class ReviewCellViewHolder extends RecyclerView.ViewHolder {
-        final TextView reviewUrl;
+    class ReviewCellViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+        final TextView author;
 
         public ReviewCellViewHolder(View itemView) {
             super(itemView);
-            reviewUrl = (TextView) itemView.findViewById(R.id.tv_review_url);
+            author = (TextView) itemView.findViewById(R.id.tv_review_author);
+            itemView.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+
         }
     }
 }

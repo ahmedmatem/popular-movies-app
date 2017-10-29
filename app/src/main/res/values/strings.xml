@@ -22,5 +22,6 @@
     <string name="play_button_description">Press button to play trailer.</string>
     <string name="mark_text">Mark as\nfavorite</string>
     <string name="unmark_text">Unmark as\nfavorite</string>
+    <string name="review_content_description">Press to view review</string>
 
 </resources>

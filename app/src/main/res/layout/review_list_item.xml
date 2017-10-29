@@ -7,6 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
+    android:background="@drawable/list_item_selector"
     android:paddingLeft="16dp"
     android:paddingStart="16dp"
     android:paddingRight="16dp"
@@ -16,23 +17,22 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingTop="8dp"
-        android:background="@drawable/list_item_selector">
+        android:paddingTop="8dp">
 
         <ImageView
-            android:id="@+id/iv_review_browse"
+            android:id="@+id/iv_review"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:contentDescription="@string/play_button_description"
-            app:srcCompat="@mipmap/ic_play_button"/>
+            android:contentDescription="@string/review_content_description"
+            app:srcCompat="@mipmap/ic_review"/>
 
         <TextView
-            android:id="@+id/tv_review_url"
+            android:id="@+id/tv_review_author"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            tools:text="Review URL"/>
+            tools:text="Review author"/>
 
     </LinearLayout>
 

@@ -34,6 +34,8 @@ public class NetworkUtils {
     public static final String SORT_ORDER_FAVORITE = "favorite";
     public static final String SORT_ORDER_DEFAULT = SORT_ORDER_POPULAR;
 
+    public static final String BASE_YOUTUBE_URL = "https://www.youtube.com/";
+
     private static final String TRAILERS_PATH = "/videos";
     public static final String REVIEWS_PATH = "/reviews";
 
@@ -69,6 +71,16 @@ public class NetworkUtils {
         }
 
         return url;
+    }
+
+    public static URL buildYoutubeVideoUrl(String videoKey){
+        URL url = null;
+        try {
+            return new URL(BASE_YOUTUBE_URL + "watch?v=" + videoKey);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        return  url;
     }
 
     public static URL buildMovieReviewsUrl(String movieId){

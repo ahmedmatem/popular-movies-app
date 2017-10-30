@@ -33,6 +33,8 @@ public class ReviewJsonResultParser {
 
         } catch (JSONException e){
             e.printStackTrace();
+        } catch (NullPointerException e){
+            return null;
         }
         return reviews;
     }

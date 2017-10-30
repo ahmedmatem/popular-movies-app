@@ -99,6 +99,17 @@ public class TrailerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
                 }
                 Review review = mReviews.get(position - numberOfTrailers - 2);
                 reviewCellViewHolder.author.setText(review.getAuthor());
+                reviewCellViewHolder.content.setText(review.getContent());
+            }
+        }
+
+        if(holder instanceof HeaderViewHolder){
+            HeaderViewHolder headerViewHolder = (HeaderViewHolder) holder;
+            Context context = headerViewHolder.mTrailerTile.getContext();
+            if(!NetworkUtils.isOnline(context) || mTrailers.size() == 0){
+                headerViewHolder.mTrailerTile.setVisibility(View.GONE);
+            } else {
+                headerViewHolder.mTrailerTile.setVisibility(View.VISIBLE);
             }
         }
     }
@@ -151,6 +162,7 @@ public class TrailerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         final TextView mReleaseDate;
         final Button mUnfavoriteButton;
         final Button mFavoriteButton;
+        final TextView mTrailerTile;
 
 
         public HeaderViewHolder(View itemView) {
@@ -160,6 +172,7 @@ public class TrailerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             mOverview = (TextView) itemView.findViewById(R.id.tv_overview);
             mRating = (TextView) itemView.findViewById(R.id.tv_rating);
             mReleaseDate = (TextView) itemView.findViewById(R.id.tv_release_date);
+            mTrailerTile = (TextView) itemView.findViewById(R.id.tv_trailer_title);
 
             Context context = itemView.getContext();
             String sortOrder = PopularMoviesPreferences.getMovieSortOrder(context);
@@ -228,18 +241,14 @@ public class TrailerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
     }
 
-    class ReviewCellViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    class ReviewCellViewHolder extends RecyclerView.ViewHolder {
+        final  TextView content;
         final TextView author;
 
         public ReviewCellViewHolder(View itemView) {
             super(itemView);
             author = (TextView) itemView.findViewById(R.id.tv_review_author);
-            itemView.setOnClickListener(this);
-        }
-
-        @Override
-        public void onClick(View v) {
-
+            content = (TextView) itemView.findViewById(R.id.tv_review_content);
         }
     }
 }

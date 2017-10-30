@@ -78,10 +78,16 @@ public class MovieDetailActivity extends AppCompatActivity implements TrailerAda
 
     @Override
     public void onPlayButtonClicked(String movieKey) {
-        // start trailer in youtube
-        Intent youtubeIntent = new Intent(MovieDetailActivity.this, YouTubeActivity.class);
-        youtubeIntent.putExtra(TRAILER_MOVIE_KEY, movieKey);
-        startActivity(youtubeIntent);
+//        // start trailer in youtube
+//        Intent youtubeIntent = new Intent(MovieDetailActivity.this, YouTubeActivity.class);
+//        youtubeIntent.putExtra(TRAILER_MOVIE_KEY, movieKey);
+//        startActivity(youtubeIntent);
+
+        Uri webpage = Uri.parse(NetworkUtils.buildYoutubeVideoUrl(movieKey).toString());
+        Intent intent = new Intent(Intent.ACTION_VIEW, webpage);
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivity(intent);
+        }
     }
 
     @Override
@@ -167,6 +173,9 @@ public class MovieDetailActivity extends AppCompatActivity implements TrailerAda
     @Override
     public void onLoadFinished(Loader<String> loader, String data) {
         ArrayList<Review> reviews = ReviewJsonResultParser.parse(data);
+        if(reviews == null)
+            return;
+
         for (Review review : reviews) {
             mReviews.add(review);
         }

@@ -7,39 +7,30 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@drawable/list_item_selector"
+    android:paddingTop="16dp"
     android:paddingLeft="16dp"
-    android:paddingStart="16dp"
+    app:paddingStart="16dp"
     android:paddingRight="16dp"
     app:paddingEnd="16dp">
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/tv_review_content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingTop="8dp">
+        tools:text="Review content"/>
 
-        <ImageView
-            android:id="@+id/iv_review"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:contentDescription="@string/review_content_description"
-            app:srcCompat="@mipmap/ic_review"/>
-
-        <TextView
-            android:id="@+id/tv_review_author"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            tools:text="Review author"/>
-
-    </LinearLayout>
+    <TextView
+        android:id="@+id/tv_review_author"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:textStyle="bold"
+        tools:text="Review author"/>
 
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:paddingTop="8dp"
+        android:layout_marginTop="8dp"
         android:background="@color/colorListDelimiter"/>
 
 </LinearLayout>

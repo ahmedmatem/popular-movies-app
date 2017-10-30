@@ -139,7 +139,7 @@ public class MovieDetailActivity extends AppCompatActivity implements TrailerAda
 
         @Override
         protected void onPostExecute(String result) {
-            Log.d(TAG, "onPostExecute: result = " + result);
+            if (result == null) return;
             ArrayList<Trailer> trailers = TrailerJsonResultParser.parse(result);
             for (Trailer trailer : trailers) {
 //                Log.d("MovieDetailActivity", "trailer: " + trailer + "\n\n\n\n");
@@ -166,14 +166,14 @@ public class MovieDetailActivity extends AppCompatActivity implements TrailerAda
                     }
                 };
             default:
-                    throw  new RuntimeException("Loader not implemented: " + id);
+                throw new RuntimeException("Loader not implemented: " + id);
         }
     }
 
     @Override
     public void onLoadFinished(Loader<String> loader, String data) {
         ArrayList<Review> reviews = ReviewJsonResultParser.parse(data);
-        if(reviews == null)
+        if (reviews == null)
             return;
 
         for (Review review : reviews) {
@@ -185,6 +185,6 @@ public class MovieDetailActivity extends AppCompatActivity implements TrailerAda
 
     @Override
     public void onLoaderReset(Loader<String> loader) {
-        if(mReviews != null) mReviews.clear();
+        if (mReviews != null) mReviews.clear();
     }
 }

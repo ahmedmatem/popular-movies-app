@@ -7,11 +7,10 @@ import android.preference.PreferenceManager;
 import com.example.android.popularmoviesapp.utilities.NetworkUtils;
 
 /**
- * Created by ahmed on 25/10/2017.
+ * Created by ahmed on 31/10/2017.
  */
 
 public class PopularMoviesPreferences {
-
     public static final String SORT_ORDER_DEFAULT = NetworkUtils.SORT_ORDER_DEFAULT;
     public static final String SORT_ORDER = "sort_order";
 

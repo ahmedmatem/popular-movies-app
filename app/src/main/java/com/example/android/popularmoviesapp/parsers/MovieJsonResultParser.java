@@ -1,6 +1,8 @@
 package com.example.android.popularmoviesapp.parsers;
 
 import com.example.android.popularmoviesapp.models.MovieDetail;
+import com.example.android.popularmoviesapp.utilities.NetworkUtils;
+import com.example.android.popularmoviesapp.utilities.StorageUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -58,6 +60,11 @@ public class MovieJsonResultParser {
                 String imageUrl = currentObject.getString("poster_path");
 
                 MovieDetail movieDetail = new MovieDetail(movieId, imageUrl, title, overview, rating, releaseDate);
+                // set remote image URL
+                String remoteImageUrl = NetworkUtils.buildPosterUri(
+                        "/" + StorageUtils.getPathLastSegment(imageUrl)
+                ).toString();
+                movieDetail.setRemoteImageUrl(remoteImageUrl);
                 movieDetails.add(movieDetail);
             }
         } catch (JSONException e) {

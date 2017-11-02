@@ -1,5 +1,7 @@
 package com.example.android.popularmoviesapp.models;
 
+import android.graphics.Bitmap;
+
 import java.io.Serializable;
 
 /**
@@ -17,6 +19,10 @@ public class MovieDetail implements Serializable {
     private String mOverview;
     private String mRating;
     private String mReleaseDate;
+
+    private String mRemoteImageUrl;
+    private boolean mIsFavorite = false;
+    private Bitmap mBitmap;
 
     public MovieDetail(long id, String movieId, String imageUrl, String title, String overview, String rating, String releaseDate) {
         this(movieId, imageUrl, title, overview, rating, releaseDate);
@@ -57,6 +63,34 @@ public class MovieDetail implements Serializable {
 
     public long getId() {
         return mId;
+    }
+
+    public boolean isFavorite() {
+        return mIsFavorite;
+    }
+
+    public void setFavorite(boolean favorite) {
+        mIsFavorite = favorite;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        mImageUrl = imageUrl;
+    }
+
+    public String getRemoteImageUrl() {
+        return mRemoteImageUrl;
+    }
+
+    public void setRemoteImageUrl(String remoteImageUrl) {
+        mRemoteImageUrl = remoteImageUrl;
+    }
+
+    public Bitmap getBitmap() {
+        return mBitmap;
+    }
+
+    public void setBitmap(Bitmap bitmap) {
+        mBitmap = bitmap;
     }
 
     @Override

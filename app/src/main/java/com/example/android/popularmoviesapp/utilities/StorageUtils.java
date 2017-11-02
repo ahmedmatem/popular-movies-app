@@ -18,7 +18,7 @@ import java.io.IOException;
 
 public class StorageUtils {
 
-    public static final String IMAGE_DIR = "imageDir";
+    public static final String IMAGE_DIR = "images";
 
     /**
      * This method save a bitmap image to internal memory
@@ -46,10 +46,21 @@ public class StorageUtils {
                 fos.close();
             } catch (IOException e) {
                 e.printStackTrace();
+            } catch (NullPointerException e){
+                e.printStackTrace();
             }
         }
 
         return directory.getAbsolutePath();
+    }
+
+    public static boolean deleteImageFromStorage(Context context, String url){
+        ContextWrapper cw = new ContextWrapper(context);
+        // path to /data/data/<yourAppName>/app_data/imageDir
+        File dir = cw.getDir(IMAGE_DIR, Context.MODE_PRIVATE);
+        File file = new File(url);
+        boolean deleted = file.delete();
+        return deleted;
     }
 
     public static Bitmap getImageFromStorage(String path, String title) {
@@ -66,5 +77,10 @@ public class StorageUtils {
     public static Uri buildImageUri(String imageUrl){
         File file = new File(imageUrl);
         return Uri.fromFile(file);
+    }
+
+    public static String getPathLastSegment(String path){
+        String[] segments = path.split("/");
+        return segments[segments.length - 1];
     }
 }

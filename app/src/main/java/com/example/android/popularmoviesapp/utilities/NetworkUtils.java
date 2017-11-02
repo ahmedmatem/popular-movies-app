@@ -1,9 +1,15 @@
 package com.example.android.popularmoviesapp.utilities;
 
+import android.content.ContentUris;
 import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+
+import com.example.android.popularmoviesapp.data.MovieContract;
+import com.example.android.popularmoviesapp.data.MovieDbHelper;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,7 +32,7 @@ public class NetworkUtils {
 
     private static final String API_BASE_URL = "https://api.themoviedb.org/3/movie/";
 
-    private static final String API_KEY_VALUE = "<api_key_value>";
+    private static final String API_KEY_VALUE = "api_key_value";
     private static final String API_KEY_PARAM = "api_key";
 
     public static final String SORT_ORDER_POPULAR = "popular";
@@ -127,5 +133,28 @@ public class NetworkUtils {
                 (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo netInfo = cm.getActiveNetworkInfo();
         return netInfo != null && netInfo.isConnectedOrConnecting();
+    }
+
+    /**
+     * Check if a movie has already marked as favorite
+     *
+     * @param context
+     * @param movieId
+     * @return
+     */
+    public static boolean isMarkedAsFavorite(Context context, String movieId) {
+        SQLiteDatabase db = new MovieDbHelper(context).getReadableDatabase();
+        Uri contentUri = ContentUris.withAppendedId(MovieContract.MovieEntry.CONTENT_URI, Long.valueOf(movieId));
+        Cursor cursor = context.getContentResolver().query(contentUri, null, null, null, null);
+        if (cursor.moveToNext()) {
+            return true;
+        }
+        return false;
+    }
+
+    public static Cursor getMovieFromStorage(Context context, String movieId) {
+        SQLiteDatabase db = new MovieDbHelper(context).getReadableDatabase();
+        Uri contentUri = ContentUris.withAppendedId(MovieContract.MovieEntry.CONTENT_URI, Long.valueOf(movieId));
+        return context.getContentResolver().query(contentUri, null, null, null, null);
     }
 }

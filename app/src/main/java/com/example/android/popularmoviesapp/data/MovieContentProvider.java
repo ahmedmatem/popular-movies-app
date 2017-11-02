@@ -1,8 +1,10 @@
 package com.example.android.popularmoviesapp.data;
 
 import android.content.ContentProvider;
+import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.SQLException;
@@ -60,6 +62,14 @@ public class MovieContentProvider extends ContentProvider {
                         sortOrder);
                 break;
             case MOVIE_WITH_ID:
+                String id = uri.getPathSegments().get(1);
+                returnCursor = db.query(MovieContract.MovieEntry.TABLE_NAME,
+                        projection,
+                        "movie_id=?",
+                        new String[]{id},
+                        null,
+                        null,
+                        sortOrder);
                 break;
             default:
                 throw  new UnsupportedOperationException("Unknown uri: " + uri);
@@ -115,7 +125,7 @@ public class MovieContentProvider extends ContentProvider {
                 String id = uri.getPathSegments().get(1);
                 deletedRows = db.delete(
                         MovieContract.MovieEntry.TABLE_NAME,
-                        "_id=?",
+                        "movie_id=?",
                         new String[]{id});
                 break;
             default:
@@ -130,5 +140,31 @@ public class MovieContentProvider extends ContentProvider {
     @Override
     public int update(@NonNull Uri uri, @Nullable ContentValues values, @Nullable String selection, @Nullable String[] selectionArgs) {
         return 0;
+    }
+
+    public static Cursor getMovieById(Context context, String movieId){
+        ContentResolver contentResolver = context.getContentResolver();
+        return contentResolver.query(
+                ContentUris.withAppendedId(MovieContract.MovieEntry.CONTENT_URI,
+                        Long.valueOf(movieId)),
+                null,
+                null,
+                null,
+                null);
+    }
+
+    public static boolean isMovieFavorite(Context context, String movieId){
+        ContentResolver contentResolver = context.getContentResolver();
+        Cursor cursor = contentResolver.query(
+                ContentUris.withAppendedId(MovieContract.MovieEntry.CONTENT_URI,
+                        Long.valueOf(movieId)),
+                null,
+                null,
+                null,
+                null);
+        if(cursor.moveToNext()){
+            return true;
+        }
+        return false;
     }
 }

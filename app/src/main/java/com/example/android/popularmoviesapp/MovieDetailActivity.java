@@ -14,8 +14,12 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.android.popularmoviesapp.data.MovieContentProvider;
 import com.example.android.popularmoviesapp.data.MovieContract;
 import com.example.android.popularmoviesapp.models.MovieDetail;
 import com.example.android.popularmoviesapp.models.Review;
@@ -36,24 +40,32 @@ public class MovieDetailActivity extends AppCompatActivity implements TrailerAda
 
     public static final int ID_REVIEW_LOADER = 0;
 
-    public static final String TRAILER_MOVIE_KEY = "trailer_movie_key";
-
-    // TODO: override onSavedInstantState
-
-    private MovieDetail mMovieDetail;
+    public static final String MOVIE_DETAIL_KEY = "movie_detail";
 
     private TrailerAdapter mAdapter;
 
     private final ArrayList<Trailer> mTrailers = new ArrayList<>();
     private final ArrayList<Review> mReviews = new ArrayList<>();
+    private MovieDetail mMovieDetail;
+
+    String imagePath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movie_detail);
 
-        Intent intent = getIntent();
-        mMovieDetail = (MovieDetail) intent.getSerializableExtra(MainActivity.MOVIE_DETAIL);
+        // set movieDetail
+        if (savedInstanceState != null) {
+            // from activity state
+            if (savedInstanceState.containsKey(MOVIE_DETAIL_KEY)) {
+                mMovieDetail = (MovieDetail) savedInstanceState.getSerializable(MOVIE_DETAIL_KEY);
+            }
+        } else {
+            // from intent
+            Intent intent = getIntent();
+            mMovieDetail = (MovieDetail) intent.getSerializableExtra(MainActivity.MOVIE_DETAIL);
+        }
 
         TextView mTitle = (TextView) findViewById(R.id.tv_original_title);
         mTitle.setText(mMovieDetail.getTitle());
@@ -66,9 +78,8 @@ public class MovieDetailActivity extends AppCompatActivity implements TrailerAda
         trailersRecyclerView.setLayoutManager(layoutManager);
         trailersRecyclerView.setAdapter(mAdapter);
 
-        // load movie trailers
+        // load trailers
         String movieId = mMovieDetail.getMovieId();
-        Log.d(TAG, "onCreate: movie id = " + movieId);
         if (NetworkUtils.isOnline(this)) {
             new TrailerAsyncTask().execute(NetworkUtils.buildMovieTrailersUrl(movieId));
         }
@@ -77,8 +88,19 @@ public class MovieDetailActivity extends AppCompatActivity implements TrailerAda
     }
 
     @Override
-    public void onPlayButtonClicked(String movieKey) {
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putSerializable(MOVIE_DETAIL_KEY, mAdapter.getMovieDetail());
+        super.onSaveInstanceState(outState);
+    }
 
+    @Override
+    protected void onStop() {
+//        mAdapter.getMovieDetail().setFavorite(!mAdapter.getMovieDetail().isFavorite());
+        super.onStop();
+    }
+
+    @Override
+    public void onPlayButtonClicked(String movieKey) {
         Uri webPage = Uri.parse(NetworkUtils.buildYoutubeVideoUrl(movieKey).toString());
         Intent intent = new Intent(Intent.ACTION_VIEW, webPage);
         if (intent.resolveActivity(getPackageManager()) != null) {
@@ -87,35 +109,79 @@ public class MovieDetailActivity extends AppCompatActivity implements TrailerAda
     }
 
     @Override
-    public void onFavoriteButtonClicked(Bitmap bitmap) {
-        // insert image to internal memory
-        String imageUrl =
-                StorageUtils.saveToInternalStorage(getApplicationContext(), bitmap, mMovieDetail.getImageUrl());
+    public void onFavoriteMarkClicked(View v, boolean isFavorite) {
+        ImageView iv = (ImageView) v;
+        if (isFavorite) {
+            iv.setImageResource(R.mipmap.ic_favorite_star_disable);
+        } else {
+            iv.setImageResource(R.mipmap.ic_favorite_star_enable);
+        }
+        mAdapter.getMovieDetail().setFavorite(!isFavorite);
+    }
 
-        if (imageUrl != null) {
-            Log.d(TAG, "inserting movie detail");
+    private void performFavoriteAction() {
+        if (mAdapter.getMovieDetail().isFavorite()) {
+            Bitmap bitmap = mAdapter.getMovieDetail().getBitmap();
+            tryMarkMovieAsFavorite(bitmap);
+        } else {
+            String movieId = mAdapter.getMovieDetail().getMovieId();
+            TryDeleteFavoriteMovie(movieId);
+        }
+        mAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            performFavoriteAction();
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        performFavoriteAction();
+        super.onBackPressed();
+    }
+
+    private void tryMarkMovieAsFavorite(Bitmap bitmap) {
+        String movieId = mAdapter.getMovieDetail().getMovieId();
+        if (MovieContentProvider.isMovieFavorite(this, movieId)) {
+            // movie has already marked as favorite
+            return;
+        }
+
+        imagePath =
+                StorageUtils.saveToInternalStorage(getApplicationContext(), bitmap,
+                        mMovieDetail.getImageUrl());
+        if (imagePath != null) {
+            String localImageUrl = StorageUtils.buildImageUri(imagePath + mMovieDetail.getImageUrl()).toString();
             ContentValues cv = new ContentValues();
-            cv.put(MovieContract.MovieEntry.COLUMN_IMAGE_URL, imageUrl + mMovieDetail.getImageUrl());
+            cv.put(MovieContract.MovieEntry.COLUMN_IMAGE_URL, localImageUrl);
             cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_ID, mMovieDetail.getMovieId());
             cv.put(MovieContract.MovieEntry.COLUMN_TITLE, mMovieDetail.getTitle());
             cv.put(MovieContract.MovieEntry.COLUMN_OVERVIEW, mMovieDetail.getOverview());
             cv.put(MovieContract.MovieEntry.COLUMN_RATING, mMovieDetail.getRating());
             cv.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, mMovieDetail.getReleaseDate());
 
-            // Insert movie detail into database via a ContentResolver
-            Uri uri = getContentResolver().insert(MovieContract.MovieEntry.CONTENT_URI, cv);
+            getContentResolver().insert(MovieContract.MovieEntry.CONTENT_URI, cv);
+
+            // set local image urls in adapter
+            mAdapter.getMovieDetail().setImageUrl(localImageUrl);
+            mAdapter.notifyDataSetChanged();
         }
     }
 
-    @Override
-    public void onUnfavoriteButtonClicked(long id) {
-        // TODO: delete row from database by movieId using MovieContentProvider
-        Uri uri = ContentUris.withAppendedId(MovieContract.MovieEntry.CONTENT_URI, id);
-        int deletedRows = getContentResolver().delete(uri, null, null);
+    private int TryDeleteFavoriteMovie(String movieId) {
+        if (MovieContentProvider.isMovieFavorite(this, movieId)) {
+            StorageUtils.deleteImageFromStorage(getApplicationContext(),
+                    mAdapter.getMovieDetail().getImageUrl());
+            mAdapter.notifyDataSetChanged();
 
-        if (deletedRows > 0) {
-            finish();
+            Uri uri = ContentUris.withAppendedId(MovieContract.MovieEntry.CONTENT_URI, Long.valueOf(movieId));
+            return getContentResolver().delete(uri, null, null);
         }
+        return -1;
     }
 
     private class TrailerAsyncTask extends AsyncTask<URL, Void, String> {
@@ -123,7 +189,6 @@ public class MovieDetailActivity extends AppCompatActivity implements TrailerAda
         @Override
         protected String doInBackground(URL... params) {
             URL url = params[0];
-            Log.d(TAG, "doInBackground: url = " + url);
             String result = null;
             try {
                 result = NetworkUtils.getResponseFromHttpUrl(url);
@@ -135,14 +200,15 @@ public class MovieDetailActivity extends AppCompatActivity implements TrailerAda
 
         @Override
         protected void onPostExecute(String result) {
-            if (result == null) return;
+            if (result == null)
+                return;
             ArrayList<Trailer> trailers = TrailerJsonResultParser.parse(result);
             for (Trailer trailer : trailers) {
-//                Log.d("MovieDetailActivity", "trailer: " + trailer + "\n\n\n\n");
                 mTrailers.add(trailer);
             }
             mAdapter.notifyDataSetChanged();
         }
+
     }
 
     @Override
@@ -181,6 +247,8 @@ public class MovieDetailActivity extends AppCompatActivity implements TrailerAda
 
     @Override
     public void onLoaderReset(Loader<String> loader) {
-        if (mReviews != null) mReviews.clear();
+        if (mReviews != null) {
+            mReviews.clear();
+        }
     }
 }

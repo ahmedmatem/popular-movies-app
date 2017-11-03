@@ -12,6 +12,7 @@ import android.widget.ImageView;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by ahmed on 03/10/2017.
@@ -19,7 +20,7 @@ import java.util.ArrayList;
 
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.ViewHolder> {
 
-    private final ArrayList<Uri> mPosterUris;
+    private ArrayList<Uri> mPosterUris;
 
     private final MovieOnClickHandler mMovieOnClickHandler;
 

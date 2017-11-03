@@ -30,9 +30,9 @@ public class NetworkUtils {
 
     private static final String BASE_URL = "http://image.tmdb.org/t/p/";
 
-    private static final String API_BASE_URL = "https://api.themoviedb.org/3/movie/";
+    public static final String API_BASE_URL = "https://api.themoviedb.org/3/movie/";
 
-    private static final String API_KEY_VALUE = "34908b2a2093affdee976f3885ae1c0e";
+    public static final String API_KEY_VALUE = "keY_g0Es_herE";
     private static final String API_KEY_PARAM = "api_key";
 
     public static final String SORT_ORDER_POPULAR = "popular";

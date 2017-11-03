@@ -2,6 +2,9 @@ package com.example.android.popularmoviesapp.models;
 
 import android.graphics.Bitmap;
 
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
+
 import java.io.Serializable;
 
 /**
@@ -13,11 +16,29 @@ public class MovieDetail implements Serializable {
     static final long serialVersionUID = 1L;
 
     private long mId;
+
+    @SerializedName("id")
+    @Expose
     private String mMovieId;
+
+    @SerializedName("poster_path")
+    @Expose
     private String mImageUrl;
+
+    @SerializedName("title")
+    @Expose
     private String mTitle;
+
+    @SerializedName("overview")
+    @Expose
     private String mOverview;
+
+    @SerializedName("vote_average")
+    @Expose
     private String mRating;
+
+    @SerializedName("release_date")
+    @Expose
     private String mReleaseDate;
 
     private String mRemoteImageUrl;
@@ -36,6 +57,7 @@ public class MovieDetail implements Serializable {
         mRating = rating;
         mReleaseDate = releaseDate;
     }
+
 
     public String getMovieId() {
         return mMovieId;

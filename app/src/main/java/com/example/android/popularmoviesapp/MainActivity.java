@@ -12,20 +12,28 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import com.example.android.popularmoviesapp.data.MovieContract;
 import com.example.android.popularmoviesapp.data.PopularMoviesPreferences;
+import com.example.android.popularmoviesapp.interfaces.MovieAPIService;
 import com.example.android.popularmoviesapp.interfaces.OnMovieLoadListener;
 import com.example.android.popularmoviesapp.models.MovieDetail;
+import com.example.android.popularmoviesapp.models.MovieList;
 import com.example.android.popularmoviesapp.services.FavoriteMovieAsyncTask;
-import com.example.android.popularmoviesapp.services.MovieAsyncTask;
+import com.example.android.popularmoviesapp.services.RetrofitClient;
 import com.example.android.popularmoviesapp.utilities.NetworkUtils;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity
         implements MovieAdapter.MovieOnClickHandler,
-        OnMovieLoadListener{
+        OnMovieLoadListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -43,7 +51,7 @@ public class MainActivity extends AppCompatActivity
 
     private final ArrayList<Uri> mPosterUris = new ArrayList<>();
     private ArrayList<MovieDetail> mMovieDetails = new ArrayList<>();
-    String sortQueryParamValue;
+    String sortQueryParamValue, prevSortQueryParamValue;
 
     private MovieAdapter mAdapter;
 
@@ -61,14 +69,12 @@ public class MainActivity extends AppCompatActivity
         mMoviesRecyclerView.setLayoutManager(mLayoutManager);
 
         sortQueryParamValue = NetworkUtils.SORT_ORDER_DEFAULT;
+        resetScrollPosition();
         if (savedInstanceState != null) {
+            Log.d(TAG, "onCreate: in");
             sortQueryParamValue = savedInstanceState.getString(SORT_ORDER_KEY);
-            mFirstVisibleItemPosition =
-                    savedInstanceState.getInt(FIRST_VISIBLE_POSITION);
-            mPaddingTop = savedInstanceState.getInt(PADDING_TOP);
-            Log.d(TAG, "onCreate: padding top: " + mPaddingTop);
+            getScrollPosition(savedInstanceState);
         }
-        PopularMoviesPreferences.setMovieSortOrder(this, sortQueryParamValue);
     }
 
     private void setActivityTitle(String sortQueryParamValue) {
@@ -93,11 +99,26 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         outState.putString(SORT_ORDER_KEY, sortQueryParamValue);
-        int firstVisibleItemPosition = mLayoutManager.findFirstVisibleItemPosition();
-        outState.putInt(FIRST_VISIBLE_POSITION, firstVisibleItemPosition);
-        View firstVisibleView = mLayoutManager.findViewByPosition(firstVisibleItemPosition);
-        outState.putInt(PADDING_TOP, firstVisibleView.getTop());
+        saveScrollPosition(outState);
         super.onSaveInstanceState(outState);
+    }
+
+    private void saveScrollPosition(Bundle outState) {
+        int firstVisibleItemPosition = mLayoutManager.findFirstVisibleItemPosition();
+        View firstVisibleView = mLayoutManager.findViewByPosition(firstVisibleItemPosition);
+        outState.putInt(FIRST_VISIBLE_POSITION, firstVisibleItemPosition);
+        outState.putInt(PADDING_TOP, firstVisibleView.getTop());
+    }
+
+    private void getScrollPosition(Bundle savedInstanceState) {
+        mFirstVisibleItemPosition =
+                savedInstanceState.getInt(FIRST_VISIBLE_POSITION);
+        mPaddingTop = savedInstanceState.getInt(PADDING_TOP);
+    }
+
+    private void resetScrollPosition(){
+        mFirstVisibleItemPosition = 0;
+        mPaddingTop = 0;
     }
 
     @Override
@@ -178,8 +199,9 @@ public class MainActivity extends AppCompatActivity
     private void showMoviePosters(String sortQueryParamValue) {
         this.sortQueryParamValue = sortQueryParamValue;
         setActivityTitle(sortQueryParamValue);
-        new MovieAsyncTask(this, this)
-                .execute(NetworkUtils.buildMovieUrl(sortQueryParamValue));
+
+        // use retrofit http connection
+        new RetrofitClient(this).loadMovies(sortQueryParamValue, NetworkUtils.API_KEY_VALUE);
     }
 
     private void showFavoriteMovies(String sortQueryParamValue) {
